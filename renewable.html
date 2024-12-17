@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>再生能源發電量地圖查詢</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* 全局樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #f0f8ff, #87ceeb);
+            color: #333;
+        }
+        header {
+            background: #004466;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .info-section {
+            display: flex;
+            justify-content:space-around;
+            align-items: center;
+            margin: 20px auto;
+            max-width: 95%;
+        }
+        .info-block {
+            flex: 1;
+            margin: 0 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .info-block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .info-block h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #004466;
+        }
+        .info-block p {
+            margin: 10px 0 0;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        form {
+            margin: 20px auto;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #006699;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #004466;
+        }
+        #map {
+            margin: 20px auto;
+            width: 90%;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        #result {
+            margin: 20px auto;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        #result p {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>再生能源發電量資訊網</h1>
+    </header>
+    <!-- 新增四個區塊 -->
+ 
+    <div class="info-section">
+        <a href="#section1" class="info-block">
+            <h3>用電供需及裝置容量</h3>
+            <p>了解目前電力需求與供應情況。</p>
+        </a>
+        <a href="#section2" class="info-block">
+            <h3>氣候變遷相關知識</h3>
+            <p>掌握氣候變遷對能源的影響。</p>
+        </a>
+        <a href="#section3" class="info-block">
+            <h3>再生能源發展概況</h3>
+            <p>探索再生能源的現況與前景。</p>
+        </a>
+        <a href="#section4" class="info-block">
+            <h3>再生能源投資組合配置</h3>
+            <p>了解能源市場的最佳投資策略。</p>
+        </a>
+    </div>
+
+    <!-- 預留內容的區域 -->
+    <div id="section1" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">用電供需及裝置容量</h2>
+    </div>
+    
+    <div>
+        <h3>新興科技的發展不僅帶動了半導體相關產業的快速成長，過去臺商回臺投資方案的成功推行，以及電氣化政策的推動
+            ，也進一步增加了用電需求。同時，節能措施與需求面管理的成效顯著，為穩定電力供應提供了有力支撐。
+            此外，未來AI科技浪潮預期將促使半導體產業擴大規模，加上電動車政策的推動，
+            這些因素均已納入未來用電需求的評估範圍。綜合各項考量，預估113至117年間，電力需求年均成長率約為2.5%
+            ，而113至122年間則提升至年均約2.8%，顯示未來電力需求將穩步成長，需持續強化相關配套措施以因應。</h3>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <img src="電力供給規劃.png" style="width: 45%; height: 20%; margin: 0 10px;" />
+        <img src="裝置容量規劃.png" style="width: 45%; height: 20%; margin: 0 10px;" />
+        
+    </div>
+    
+
+    <div id="section2" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">氣候變遷相關知識</h2>
+    </div>
+    
+    <div id="section3" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">再生能源發展概況</h2>
+    </div>
+    <div id="section4" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">再生能源未來預估發電量查詢</h2>
+    </div>
+
+    
+    <form id="energyForm"> 
+        <label for="scenarioType">氣候情境：</label>
+        <select id="scenarioType" required>
+            <option value="" disabled selected>請選擇</option>
+            <option value="CTRL">基期</option>
+            <option value="PGW2">暖化兩度</option>
+            <option value="PGW4">暖化四度</option>
+        </select>
+    
+        <label for="energyType">能源種類：</label>
+        <select id="energyType" required>
+            <option value="" disabled selected>請選擇</option>
+            <option value="wind">風力發電</option>
+            <option value="solar">太陽能發電</option>
+        </select>
+    
+        <label for="latitude">緯度 (Latitude)：</label>
+        <input type="number" step="0.0001" id="latitude" placeholder="例如: 23.812" required>
+    
+        <label for="longitude">經度 (Longitude)：</label>
+        <input type="number" step="0.0001" id="longitude" placeholder="例如: 120.303" required>
+    
+        <!-- 風力發電的額外輸入 -->
+        <div id="windFields" style="display: none;">
+            <label for="windHeight">風機高度 (公尺)：</label>
+            <input type="number" step="1" id="windHeight" placeholder="例如: 80">
+    
+            <label for="bladeArea">葉片面積 (平方米)：</label>
+            <input type="number" step="0.1" id="bladeArea" placeholder="例如: 50.5">
+    
+            <label for="windEfficiency">風機發電效率 (0~1)：</label>
+            <input type="number" step="0.01" min="0" max="1" id="windEfficiency" placeholder="例如: 0.35">
+        </div>
+    
+        <!-- 太陽能發電的額外輸入 -->
+        <div id="solarFields" style="display: none;">
+            <label for="panelArea">太陽能板面積 (平方米)：</label>
+            <input type="number" step="0.1" id="panelArea" placeholder="例如: 20.5">
+    
+            <label for="tiltAngle">傾斜角度 (度)：</label>
+            <input type="number" step="1" min="0" max="90" id="tiltAngle" placeholder="例如: 30">
+    
+            <label for="solarEfficiency">太陽能板發電效率 (0~1)：</label>
+            <input type="number" step="0.01" min="0" max="1" id="solarEfficiency" placeholder="例如: 0.18">
+        </div>
+    
+        <button type="submit">查詢</button>
+    </form>
+    
+    <div id="result">
+        <p id="resultText"></p>
+    </div>
+    
+    <script>
+        // Haversine公式來計算兩個經緯度點之間的距離 (單位：公里)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // 地球半徑 (公里)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // 返回距離 (公里)
+        }
+    
+        // 計算風力發電量
+        function calculateWindPower(windSpeed, windHeight, bladeArea, windEfficiency) {
+            return windSpeed * bladeArea * windEfficiency;
+        }
+    
+        // 計算太陽能發電量
+        function calculateSolarPower(sunlightIntensity, panelArea, solarEfficiency, tiltAngle) {
+            return sunlightIntensity * panelArea * solarEfficiency;
+        }
+    
+        // 獲取選擇的能源類型 (風力或太陽能)
+        document.getElementById("energyForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const scenarioType = document.getElementById("scenarioType").value;
+            const energyType = document.getElementById("energyType").value;
+            const latitude = parseFloat(document.getElementById("latitude").value);
+            const longitude = parseFloat(document.getElementById("longitude").value);
+    
+            // 提取其他必須的輸入
+            const windHeight = parseInt(document.getElementById("windHeight")?.value || 80);
+            const bladeArea = parseFloat(document.getElementById("bladeArea")?.value || 50.5);
+            const windEfficiency = parseFloat(document.getElementById("windEfficiency")?.value || 0.35);
+        
+            const panelArea = parseFloat(document.getElementById("panelArea")?.value || 20.5);
+            const solarEfficiency = parseFloat(document.getElementById("solarEfficiency")?.value || 0.18);
+            const tiltAngle = parseInt(document.getElementById("tiltAngle")?.value || 30);
+    
+            // 定義JSON檔案對應氣候情境
+            const fileMapping = {
+                "wind": {
+                    "CTRL": "SpatialWindAvg_CTRL_with_lat_lon.json",
+                    "PGW2": "SpatialWindAvg_PGW2_with_lat_lon.json",
+                    "PGW4": "SpatialWindAvg_PGW4_with_lat_lon.json"
+                },
+                "solar": {
+                    "CTRL": "SpatialSolarAvg_CTRL_with_lat_lon.json",
+                    "PGW2": "SpatialSolarAvg_PGW2_with_lat_lon.json",
+                    "PGW4": "SpatialSolarAvg_PGW4_with_lat_lon.json"
+                }
+            };
+    
+            // 根據所選擇的情境與能源類型來選擇檔案
+            const jsonFileName = fileMapping[energyType][scenarioType];
+        
+            fetch(jsonFileName)
+                .then(response => response.json())
+                .then(data => {
+                    let nearestLocation = null;
+                    let minDistance = Infinity; // 初始化最短距離為無窮大
+    
+                    // 提取數據
+                    const latitudeArray = data.latitude[0];  // 第 1 個地點的緯度
+                    const longitudeArray = data.longitude[0]; // 第 1 個地點的經度
+    
+                    // 遍歷所有位置，找出與用戶位置最近的地點
+                    for (let i = 0; i < latitudeArray.length; i++) {
+                        const lat = latitudeArray[i];
+                        const lon = longitudeArray[i];
+                        const distance = calculateDistance(latitude, longitude, lat, lon);
+    
+                        // 更新最短距離並儲存該地點索引
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestLocation = i;
+                        }
+                    }
+    
+                    if (nearestLocation !== null) {
+                        // 根據最接近的地點獲取資料
+                        const selectedLatitude = latitudeArray[nearestLocation];
+                        const selectedLongitude = longitudeArray[nearestLocation];
+    
+                        if (energyType === "wind") {
+                            const windSpeed = data.wind_speed[nearestLocation];
+                            const power = calculateWindPower(windSpeed, windHeight, bladeArea, windEfficiency);
+                            document.getElementById("resultText").innerText = `風力發電量為: ${power.toFixed(2)} kW`;
+                        } else if (energyType === "solar") {
+                            const sunlightIntensity = data.sunlight_intensity[0][nearestLocation];
+                            const power = calculateSolarPower(sunlightIntensity, panelArea, solarEfficiency, tiltAngle);
+                            document.getElementById("resultText").innerText = `太陽能發電量為: ${power.toFixed(2)} kW`;
+                        }
+                    } else {
+                        document.getElementById("resultText").innerText = "找不到對應的地點資料。";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("resultText").innerText = "資料載入失敗，請稍後再試。";
+                    console.error("Error loading JSON: ", error);
+                });
+        });
+    </script>
+    
+    
+    
+
+
+
+
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 初始化地圖
+        const map = L.map('map').setView([23.6978, 120.9605], 8);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker;
+
+        // 監聽能源種類的變化，顯示對應欄位
+        document.getElementById("energyType").addEventListener("change", function () {
+            const energyType = this.value;
+            document.getElementById("windFields").style.display = energyType === "wind" ? "block" : "none";
+            document.getElementById("solarFields").style.display = energyType === "solar" ? "block" : "none";
+        });
+
+        // 表單提交事件
+        document.getElementById("energyForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const energyType = document.getElementById("energyType").value;
+            const latitude = parseFloat(document.getElementById("latitude").value).toFixed(4);
+            const longitude = parseFloat(document.getElementById("longitude").value).toFixed(4);
+
+            // 更新地圖標記
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([latitude, longitude]).addTo(map);
+            marker.bindPopup(`<strong>${energyType === "wind" ? "風力發電" : "太陽能發電"}</strong><br>緯度: ${latitude}<br>經度: ${longitude}`).openPopup();
+            map.setView([latitude, longitude], 13);
+
+            // 顯示結果
+            const simulatedGeneration = (Math.random() * 5000).toFixed(2);
+            document.getElementById("resultText").textContent = `${energyType === "wind" ? "風力發電" : "太陽能發電"} 預測發電量為：${simulatedGeneration} kWh`;
+            document.getElementById("result").style.display = "block";
+        });
+    </script>
+</body>
+</html>
