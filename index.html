@@ -401,18 +401,18 @@
     <!-- 右邊：說明內容 -->
     <div style="flex: 1; background-color: #fafafa; padding: 20px; border: 1px solid #ccc;">
         <h3>資料來源</h3>
-        <p>本查詢系統資料來源包含中央氣象局、再生能源實測資料與模式模擬數據（例如 CMIP6 下之 PGW 模式）。</p>
+        <p>本查詢系統資料來源為氣候模式模擬數據（PGW 模式），考慮若氣溫與過去的平均(2016-2020年)相比增加2度或是4度時，發電量會有甚麼影響。</p>
 
         <h3>風力發電計算公式</h3>
         <p>
             預估發電量 = 0.5 × 空氣密度 × 葉片面積 × 風速³ × 效率<br>
-            公式來源：Betz 理論與實際風機參數
+            公式來源：各式參考文獻
         </p>
 
         <h3>太陽能發電計算公式</h3>
         <p>
             預估發電量 = 面積 × 太陽輻射 × 效率 × cos(傾斜角修正)<br>
-            太陽輻射數據依據模擬輸出或實測
+            太陽輻射數據依據模擬輸出或實測 (這邊尚未做計算，後續版本會再做更新)
         </p>
     </div>
 </div>
@@ -547,7 +547,7 @@
             // 計算風力發電量的函數
             function calculateWindPower(windSpeed, height, bladeArea, efficiency) {
                 const airDensity = 1.225; // 空氣密度 (kg/m³)
-                const adjustedSpeed = windSpeed * Math.pow((height / 10), 0.14); // 按高度調整風速
+                const adjustedSpeed = windSpeed * Math.pow((height / 100), 0.14); // 按高度調整風速
                 return 0.5 * airDensity * bladeArea * Math.pow(adjustedSpeed, 3) * efficiency;
             }
 
