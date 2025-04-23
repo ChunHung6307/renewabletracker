@@ -179,9 +179,6 @@
         }
 
 
-        
-
-      
 
 
 
@@ -194,26 +191,45 @@
 </head>
 <body>
     <header>
-
-       
-
-
-
         <h1 style="text-align: center; background-color: #8c7b6b; color: white; padding: 10px 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0);">
             再生能源發電量資訊網
         </h1>
         <nav style="background-color: #b89b7a; margin: 0; width: 100%; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
             <ul style="list-style-type: none; display: flex; justify-content: center; gap: 30px; padding: 10px 0; margin: 0;">
                 <li><a href="index.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">首頁</a></li>
-                <li><a href="climate-data.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">氣候資料</a></li>
-                <li><a href="risk-assessment.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">風險評估流程</a></li>
+                
+                <li style="position: relative;">
+                    <a href="#" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">氣候資料 ▼</a>
+                    <ul style="display: none; position: absolute; background-color: #b89b7a; list-style-type: none; padding: 10px 0; margin: 0; width: 200px;">
+                        <li><a href="climate-data-processing.html" style="text-decoration: none; color: white; display: block; padding: 10px;">氣候資料整理</a></li>
+                        <li><a href="climate-databoard.html" style="text-decoration: none; color: white; display: block; padding: 10px;">氣候儀表板</a></li>
+                    </ul>
+                </li>
+                
+                <li style="position: relative;">
+                    <a href="#" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">風險評估流程 ▼</a>
+                    <ul style="display: none; position: absolute; background-color: #b89b7a; list-style-type: none; padding: 10px 0; margin: 0; width: 200px;">
+                        <li><a href="risk-introduction.html" style="text-decoration: none; color: white; display: block; padding: 10px;">風險簡介</a></li>
+                        <li><a href="risk-evaluation.html" style="text-decoration: none; color: white; display: block; padding: 10px;">評估流程</a></li>
+                    </ul>
+                </li>
+                
                 <li><a href="knowledge-base.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">能源供需學術研究</a></li>
             </ul>
         </nav>
         
-        
-        
-        
+        <script>
+            document.querySelectorAll('nav ul li').forEach(function(menuItem) {
+                menuItem.addEventListener('mouseover', function() {
+                    let dropdown = this.querySelector('ul');
+                    if (dropdown) dropdown.style.display = 'block';
+                });
+                menuItem.addEventListener('mouseleave', function() {
+                    let dropdown = this.querySelector('ul');
+                    if (dropdown) dropdown.style.display = 'none';
+                });
+            });
+        </script>
     </header>
 
     
@@ -303,21 +319,30 @@
     <h2 style="margin: 0; display: inline;">再生能源發展概況</h2>
 </div>
 
+<!-- 在這裡嵌入互動地圖 -->
+<div style="margin-top: 20px;">
+    <iframe src="Hsinchu_pole_distribution_converted.html" width="100%" height="500px" style="border: none;"></iframe>
+</div>
 
 
+
+
+    
 
     
 
-    
 
 
+<div id="section4" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+    <h2 style="margin: 0; display: inline;">再生能源預估發電量查詢</h2>
+</div>
 
-    <div id="section4" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
-        <h2 style="margin: 0; display: inline;">再生能源預估發電量查詢</h2>
-    </div>
+<!-- 分欄容器 -->
+<div style="display: flex; justify-content: space-between; padding: 20px; gap: 40px;">
 
-    
-        <form id="energyForm"> 
+    <!-- 左邊：表單 -->
+    <div style="flex: 1; max-width: 50%;">
+        <form id="energyForm">
             <label for="scenarioType">氣候情境：</label>
             <select id="scenarioType" required>
                 <option value="" disabled selected>請選擇</option>
@@ -325,46 +350,72 @@
                 <option value="PGW2">暖化兩度</option>
                 <option value="PGW4">暖化四度</option>
             </select>
-        
+
+            <br><br>
             <label for="energyType">能源種類：</label>
             <select id="energyType" required>
                 <option value="" disabled selected>請選擇</option>
                 <option value="wind">風力發電</option>
                 <option value="solar">太陽能發電</option>
             </select>
-        
+
+            <br><br>
             <label for="latitude">緯度 (Latitude)：</label>
             <input type="number" step="0.0001" id="latitude" placeholder="例如: 23.812" required>
-        
+
+            <br><br>
             <label for="longitude">經度 (Longitude)：</label>
             <input type="number" step="0.0001" id="longitude" placeholder="例如: 120.303" required>
-        
-            <!-- 風力發電的額外輸入 -->
+
+            <!-- 風力發電 -->
             <div id="windFields" style="display: none;">
+                <br>
                 <label for="windHeight">風機高度 (公尺)：</label>
                 <input type="number" step="1" id="windHeight" placeholder="例如: 80">
-        
+
                 <label for="bladeArea">葉片面積 (平方米)：</label>
                 <input type="number" step="0.1" id="bladeArea" placeholder="例如: 50.5">
-        
+
                 <label for="windEfficiency">風機發電效率 (0~1)：</label>
                 <input type="number" step="0.01" min="0" max="1" id="windEfficiency" placeholder="例如: 0.35">
             </div>
-        
-            <!-- 太陽能發電的額外輸入 -->
+
+            <!-- 太陽能 -->
             <div id="solarFields" style="display: none;">
+                <br>
                 <label for="panelArea">太陽能板面積 (平方米)：</label>
                 <input type="number" step="0.1" id="panelArea" placeholder="例如: 20.5">
-        
+
                 <label for="tiltAngle">傾斜角度 (度)：</label>
                 <input type="number" step="1" min="0" max="90" id="tiltAngle" placeholder="例如: 30">
-        
+
                 <label for="solarEfficiency">太陽能板發電效率 (0~1)：</label>
                 <input type="number" step="0.01" min="0" max="1" id="solarEfficiency" placeholder="例如: 0.18">
             </div>
-        
+
+            <br><br>
             <button type="submit">查詢</button>
         </form>
+    </div>
+
+    <!-- 右邊：說明內容 -->
+    <div style="flex: 1; background-color: #fafafa; padding: 20px; border: 1px solid #ccc;">
+        <h3>資料來源</h3>
+        <p>本查詢系統資料來源包含中央氣象局、再生能源實測資料與模式模擬數據（例如 CMIP6 下之 PGW 模式）。</p>
+
+        <h3>風力發電計算公式</h3>
+        <p>
+            預估發電量 = 0.5 × 空氣密度 × 葉片面積 × 風速³ × 效率<br>
+            公式來源：Betz 理論與實際風機參數
+        </p>
+
+        <h3>太陽能發電計算公式</h3>
+        <p>
+            預估發電量 = 面積 × 太陽輻射 × 效率 × cos(傾斜角修正)<br>
+            太陽輻射數據依據模擬輸出或實測
+        </p>
+    </div>
+</div>
 
         
 
