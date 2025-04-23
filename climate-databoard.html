@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氣象數據儀表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 全局樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #f5deb3, #f9e4d4);
+            color: #333;
+        }
+
+        header {
+            background: #8c7b6b; /* 柔和的棕米色，與側邊欄一致 */
+            color: white; /* 白色文字，保證清晰可讀性 */
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 添加底部陰影以區分內容 */
+            border-bottom: 4px solid #d2b48c; /* 添加底部邊框呼應背景主題 */
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .container {
+            margin: 20px;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-container select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .chart-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .data-table {
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table th, table td {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+
+    <style>
+        /* 使用相對單位控制自適應設計 */
+        html {
+            font-size: 20px; /* 基準字體大小 */
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 14px; /* 螢幕較小時縮小字體大小 */
+            }
+        }
+
+        @media (max-width: 480px) {
+            html {
+                font-size: 12px; /* 極小螢幕上的字體 */
+            }
+        }
+
+        .contact-form form {
+            font-size: 1rem; /* 相對於基準字體比例 */
+        }
+    </style>
+
+
+</head>
+<body>
+
+    <header>
+        <h1 style="text-align: center; background-color: #8c7b6b; color: white; padding: 10px 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0);">
+            再生能源發電量資訊網
+        </h1>
+        <nav style="background-color: #b89b7a; margin: 0; width: 100%; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <ul style="list-style-type: none; display: flex; justify-content: center; gap: 30px; padding: 10px 0; margin: 0;">
+                <li><a href="index.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">首頁</a></li>
+                
+                <li style="position: relative;">
+                    <a href="#" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">氣候資料 ▼</a>
+                    <ul style="display: none; position: absolute; background-color: #b89b7a; list-style-type: none; padding: 10px 0; margin: 0; width: 200px;">
+                        <li><a href="climate-data-processing.html" style="text-decoration: none; color: white; display: block; padding: 10px;">氣候資料整理</a></li>
+                        <li><a href="climate-databoard.html" style="text-decoration: none; color: white; display: block; padding: 10px;">氣候儀表板</a></li>
+                    </ul>
+                </li>
+                
+                <li style="position: relative;">
+                    <a href="#" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">風險評估流程 ▼</a>
+                    <ul style="display: none; position: absolute; background-color: #b89b7a; list-style-type: none; padding: 10px 0; margin: 0; width: 200px;">
+                        <li><a href="risk-introduction.html" style="text-decoration: none; color: white; display: block; padding: 10px;">風險簡介</a></li>
+                        <li><a href="risk-evaluation.html" style="text-decoration: none; color: white; display: block; padding: 10px;">評估流程</a></li>
+                    </ul>
+                </li>
+                
+                <li><a href="knowledge-base.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">能源供需學術研究</a></li>
+            </ul>
+        </nav>
+        
+        <script>
+            document.querySelectorAll('nav ul li').forEach(function(menuItem) {
+                menuItem.addEventListener('mouseover', function() {
+                    let dropdown = this.querySelector('ul');
+                    if (dropdown) dropdown.style.display = 'block';
+                });
+                menuItem.addEventListener('mouseleave', function() {
+                    let dropdown = this.querySelector('ul');
+                    if (dropdown) dropdown.style.display = 'none';
+                });
+            });
+        </script>
+    </header>
+    <div class="container">
+        <!-- 篩選區 -->
+        <div class="filter-container">
+            <div>
+                <label for="cityFilter">城市篩選:</label>
+                <select id="cityFilter">
+                    <option value="Taipei">台北</option>
+                    <option value="Taichung">台中</option>
+                    <option value="Tainan">台南</option>
+                </select>
+            </div>
+            <div>
+                <label for="variableFilter">氣象變數篩選:</label>
+                <select id="variableFilter">
+                    <option value="RH">濕度</option>
+                    <option value="Temperature">溫度</option>
+                </select>
+            </div>
+            <button onclick="updateDashboard()">更新儀表板</button>
+        </div>
+    
+        <!-- 圖表區 -->
+        <div class="dashboard">
+            <div class="chart-container">
+                <h3>時間序列圖</h3>
+                <canvas id="timeSeriesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>直方圖</h3>
+                <canvas id="histogramChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>散佈圖</h3>
+                <canvas id="scatterChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>折線圖（多變數）</h3>
+                <canvas id="multiLineChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>次數分布圖</h3>
+                <canvas id="frequencyDistributionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>機率密度函數（PDF）</h3>
+                <canvas id="pdfChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        氣象數據儀表板 - 使用 HTML、CSS 和 Chart.js
+    </footer>
+    
+    <script>
+        // 確保頁面載入完成後執行
+        window.onload = function() {
+            // 假設從 codis_data.json 檔案讀取資料
+            fetch('CODIS_data.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('網路錯誤，無法載入資料');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    window.jsonData = data;  // 將資料儲存在全域變數中
+                    updateDashboard();  // 資料成功載入後更新儀表板
+                })
+                .catch(error => {
+                    console.error('無法載入 JSON 檔案:', error);
+                    alert('資料載入失敗，請稍後再試。');
+                });
+        };
+    
+        // 圖表設定
+        let timeSeriesChartCtx, histogramChartCtx, scatterChartCtx, lineChartCtx, freqDistChartCtx, pdfChartCtx;
+        let timeSeriesChart, histogramChart, scatterChart, multiLineChart, freqDistChart, pdfChart;
+    
+        // 確保 DOM 元素載入後初始化
+        document.addEventListener("DOMContentLoaded", function() {
+            timeSeriesChartCtx = document.getElementById('timeSeriesChart')?.getContext('2d');
+            histogramChartCtx = document.getElementById('histogramChart')?.getContext('2d');
+            scatterChartCtx = document.getElementById('scatterChart')?.getContext('2d');
+            lineChartCtx = document.getElementById('multiLineChart')?.getContext('2d');
+            freqDistChartCtx = document.getElementById('frequencyDistributionChart')?.getContext('2d');
+            pdfChartCtx = document.getElementById('pdfChart')?.getContext('2d');
+        });
+    
+     // 計算數列的平均值
+function mean(arr) {
+    const sum = arr.reduce((acc, value) => acc + value, 0);
+    return sum / arr.length;
+}
+
+// 更新儀表板
+function updateDashboard() {
+    if (!window.jsonData) {
+        console.error('資料尚未載入');
+        return;
+    }
+
+    const city = document.getElementById('cityFilter').value;
+    const variable = document.getElementById('variableFilter').value;
+
+    // 選擇相應的資料欄位
+    const yAxisData = window.jsonData.map(data => data[`${variable}_${city}`]);
+    const labels = window.jsonData.map(data => data.date);
+
+    // 更新時間序列圖
+    if (timeSeriesChart) timeSeriesChart.destroy();  // 如果已有圖表，先銷毀
+    timeSeriesChart = new Chart(timeSeriesChartCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `${city} - ${variable}`,
+                data: yAxisData,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: '日期' } },
+                y: { title: { display: true, text: '數值' } }
+            }
+        }
+    });
+
+    // 更新直方圖
+    if (histogramChart) histogramChart.destroy();  // 如果已有圖表，先銷毀
+    histogramChart = new Chart(histogramChartCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `${city} - ${variable}`,
+                data: yAxisData,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: '日期' } },
+                y: { title: { display: true, text: '數值' }, beginAtZero: true }
+            }
+        }
+    });
+
+    // 更新散點圖
+    if (scatterChart) scatterChart.destroy();  // 如果已有圖表，先銷毀
+    scatterChart = new Chart(scatterChartCtx, {
+        type: 'scatter',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `${city} - ${variable}`,
+                data: yAxisData.map((value, index) => ({ x: index, y: value })),
+                backgroundColor: 'rgba(75, 192, 192, 1)',
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: '時間點' } },
+                y: { title: { display: true, text: '數值' } }
+            }
+        }
+    });
+
+    // 更新折線圖
+    if (multiLineChart) multiLineChart.destroy();  // 如果已有圖表，先銷毀
+    multiLineChart = new Chart(lineChartCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `${city} - ${variable}`,
+                data: yAxisData,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: '日期' } },
+                y: { title: { display: true, text: '數值' } }
+            }
+        }
+    });
+
+    // 更新次數分布圖
+    if (freqDistChart) freqDistChart.destroy();
+    freqDistChart = new Chart(freqDistChartCtx, {
+        type: 'bar',
+        data: {
+            labels: yAxisData,  // 橫軸是選擇的變數
+            datasets: [{
+                label: `頻率分布 (${city} - ${variable})`,
+                data: yAxisData.reduce((acc, val) => {
+                    acc[val] = (acc[val] || 0) + 1;
+                    return acc;
+                }, {}),
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: `${variable} 數值` } },
+                y: { title: { display: true, text: '次數' }, beginAtZero: true }
+            }
+        }
+    });
+
+    // 更新機率密度函數（PDF）
+    if (pdfChart) pdfChart.destroy();
+    pdfChart = new Chart(pdfChartCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `PDF (${city} - ${variable})`,
+                data: yAxisData.map(val => Math.exp(-Math.pow(val - mean(yAxisData), 2) / (2 * Math.pow(2, 2)))),  // 使用自定義的 mean 函數
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: '數值' } },
+                y: { title: { display: true, text: '機率密度' } }
+            }
+        }
+    });
+}
+
+    </script>
+    
+
+
+
+
+</body>
+</html>
