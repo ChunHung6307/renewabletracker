@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>再生能源發電量地圖查詢</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* 全局樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #f5deb3, #f9e4d4);
+            color: #333;
+        }
+
+        header {
+            background: #8c7b6b; /* 柔和的棕米色，與側邊欄一致 */
+            color: white; /* 白色文字，保證清晰可讀性 */
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 添加底部陰影以區分內容 */
+            border-bottom: 4px solid #d2b48c; /* 添加底部邊框呼應背景主題 */
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .info-section {
+            display: flex;
+            justify-content:space-around;
+            align-items: center;
+            margin: 20px auto;
+            max-width: 95%;
+        }
+        .info-block {
+            flex: 1;
+            margin: 0 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .info-block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .info-block h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #004466;
+        }
+        .info-block p {
+            margin: 10px 0 0;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        form {
+            margin: 20px auto;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #006699;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #004466;
+        }
+        #map {
+            margin: 20px auto;
+            width: 90%;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        #result {
+            margin: 20px auto;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        #result p {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .contact-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            margin: 0 auto;
+        }
+
+        /* 側邊欄樣式 */
+        .sidebar {
+            flex: 0.2;
+            border-radius: 16px;
+            background-color: #86590a; /* 柔和的棕米色，與主背景搭配 */
+            color: white; /* 白色文字，清晰易讀 */
+            height: 100vh;
+            padding: 20px;
+            position: sticky;
+            top: 0; /* 側邊欄固定在視窗頂部 */
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* 添加陰影，突顯區塊 */
+            border-right: 4px solid #d2b48c; /* 米黃色邊框與背景呼應 */
+        }
+
+        .sidebar1 {
+            border-radius: 16px;
+            background-color: #ffffff; /* 深色背景 */
+            color: black; /* 白色文字，清晰可讀 */
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* 更強的陰影，突顯區塊 */
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: black;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: black;
+            font-size: 1.1em;
+            transition: color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            color: #1abc9c;
+        }
+
+      /* 主內容區域 */
+        .main-content {
+            
+            flex:0.75;
+            padding: 20px;
+            background-color: #fff8e1; /* 淡米黃色，與背景主題一致 */
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 添加陰影以突顯內容 */
+        }
+
+        #energyForm {
+    text-align: left; /* 設定文字和表單內容左對齊 */
+    margin: 0; /* 讓表單不要有額外的邊距 */
+    padding: 20; /* 讓表單內部沒有額外的內距 */
+}
+#energyForm label,
+#energyForm select,
+#energyForm input,
+#energyForm button {
+    display: block; /* 每個元素佔一行，讓表單元素呈現塊級元素 */
+    margin-bottom: 10px; /* 在每個元素底部加一些間隔，避免擁擠 */
+}
+
+      
+
+
+
+        
+
+
+
+        
+    </style>
+</head>
+<body>
+    <header>
+        <h1 style="text-align: center; background-color: #8c7b6b; color: white; padding: 10px 0; margin: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0);">
+            再生能源發電量資訊網
+        </h1>
+        <nav style="background-color: #b89b7a; margin: 0; width: 100%; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <ul style="list-style-type: none; display: flex; justify-content: center; gap: 30px; padding: 10px 0; margin: 0;">
+                <li><a href="index.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">首頁</a></li>
+                
+                <li style="position: relative;">
+                    <a href="#" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">氣候資料 ▼</a>
+                    <ul style="display: none; position: absolute; background-color: #b89b7a; list-style-type: none; padding: 10px 0; margin: 0; width: 200px;">
+                        <li><a href="climate-data-processing.html" style="text-decoration: none; color: white; display: block; padding: 10px;">氣候資料整理</a></li>
+                        <li><a href="climate-databoard.html" style="text-decoration: none; color: white; display: block; padding: 10px;">氣候儀表板</a></li>
+                    </ul>
+                </li>
+                
+                <li style="position: relative;">
+                    <a href="#" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">風險評估流程 ▼</a>
+                    <ul style="display: none; position: absolute; background-color: #b89b7a; list-style-type: none; padding: 10px 0; margin: 0; width: 200px;">
+                        <li><a href="risk-introduction.html" style="text-decoration: none; color: white; display: block; padding: 10px;">風險簡介</a></li>
+                        <li><a href="risk-evaluation.html" style="text-decoration: none; color: white; display: block; padding: 10px;">評估流程</a></li>
+                    </ul>
+                </li>
+                
+                <li><a href="knowledge-base.html" style="text-decoration: none; color: white; font-size: 1.2rem; font-weight: bold; transition: color 0.3s;">能源供需學術研究</a></li>
+            </ul>
+        </nav>
+        
+        <script>
+            document.querySelectorAll('nav ul li').forEach(function(menuItem) {
+                menuItem.addEventListener('mouseover', function() {
+                    let dropdown = this.querySelector('ul');
+                    if (dropdown) dropdown.style.display = 'block';
+                });
+                menuItem.addEventListener('mouseleave', function() {
+                    let dropdown = this.querySelector('ul');
+                    if (dropdown) dropdown.style.display = 'none';
+                });
+            });
+        </script>
+    </header>
+
+    
+    <!-- 新增四個區塊 -->
+ 
+    <div class="info-section">
+        <a href="#section1" class="info-block">
+            <h3>用電供需及裝置容量</h3>
+            <p>了解目前電力需求與供應情況。</p>
+        </a>
+        <a href="#section2" class="info-block">
+            <h3>氣候變遷相關知識</h3>
+            <p>掌握氣候變遷對能源的影響。</p>
+        </a>
+        <a href="#section3" class="info-block">
+            <h3>再生能源發展概況</h3>
+            <p>探索再生能源的現況與前景。</p>
+        </a>
+        <a href="#section4" class="info-block">
+            <h3>再生能源預估發電量查詢</h3>
+            <p>了解能源市場的最佳投資策略。</p>
+        </a>
+    </div>
+
+<!--------------------------------------------- 主要頁面範圍 ----------------------------------------------------->
+<div class="wholepage"style="display: flex; flex-direction: row-reverse; justify-content:space-around">
+        <!-- 側邊欄 -->
+    <div class="sidebar" >
+
+        <div class="sidebar1" k>
+            <h2>相關連結</h2>
+            <ul >
+                <li><a href="https://www.cwa.gov.tw/" target="blank" >中央氣象署</a></li>
+                <li><a href="https://www.ecmwf.int/en/forecasts/dataset/ecmwf-reanalysis-v5" target="blank" >歐洲中期天氣預報中心(ECMWF ERA5)</a></li>
+                <li><a href="https://data.gov.tw/dataset/19995" target="blank" >台灣電力公司過去電力供需資訊</a></li>
+                <li><a href="https://tccip.ncdr.nat.gov.tw/ds_03.aspx" target="blank" >氣候變遷資料商店</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    
+    
+    
+    <!-- 主內容 -->
+    <div class="main-content">
+    <!-- 預留內容的區域 -->
+    <div id="section1" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">用電供需及裝置容量</h2>
+    </div>
+    
+    <div>
+        <h3>新興科技的發展不僅帶動了半導體相關產業的快速成長，過去臺商回臺投資方案的成功推行，以及電氣化政策的推動
+            ，也進一步增加了用電需求。同時，節能措施與需求面管理的成效顯著，為穩定電力供應提供了有力支撐。
+            此外，未來AI科技浪潮預期將促使半導體產業擴大規模，加上電動車政策的推動，
+            這些因素均已納入未來用電需求的評估範圍。綜合各項考量，預估113至117年間，電力需求年均成長率約為2.5%
+            ，而113至122年間則提升至年均約2.8%，顯示未來電力需求將穩步成長，需持續強化相關配套措施以因應。</h3>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <img src="電力供給規劃.png" style="width: 45%; height: 20%; margin: 0 10px;" />
+        <img src="裝置容量規劃.png" style="width: 45%; height: 20%; margin: 0 10px;" />
+        
+    </div>
+    <div style="display: flex; justify-content: center; margin-top: 20px; overflow: hidden; height: 90vh;">
+        <iframe 
+            style="width: 100%; height: 100%; border: none;" 
+            src="https://www.taipower.com.tw/d006/loadGraph/loadGraph/load_briefing3.html">
+        </iframe>
+    </div>
+
+    <div id="section2" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">即時天氣資訊與預報</h2>
+    </div>
+    
+    <!-- 包裹地圖的容器 -->
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <div style="width: 80%; ; aspect-ratio: 16/9;">
+        <iframe 
+            style="width: 100%; height: 100%; border: none;" 
+            src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=5&overlay=wind&product=ecmwf&level=surface&lat=24.806&lon=120.971">
+        </iframe>
+    </div>
+</div>
+
+    
+
+<div id="section3" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+    <h2 style="margin: 0; display: inline;">再生能源發展概況</h2>
+</div>
+
+<!-- 在這裡嵌入互動地圖 -->
+<div style="margin-top: 20px;">
+    <iframe src="Hsinchu_pole_distribution_converted.html" width="100%" height="500px" style="border: none;"></iframe>
+</div>
+
+
+
+
+    
+
+    
+
+
+
+    <div id="section4" style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+        <h2 style="margin: 0; display: inline;">再生能源預估發電量查詢</h2>
+    </div>
+
+    
+        <form id="energyForm"> 
+            <label for="scenarioType">氣候情境：</label>
+            <select id="scenarioType" required>
+                <option value="" disabled selected>請選擇</option>
+                <option value="CTRL">基期</option>
+                <option value="PGW2">暖化兩度</option>
+                <option value="PGW4">暖化四度</option>
+            </select>
+        
+            <label for="energyType">能源種類：</label>
+            <select id="energyType" required>
+                <option value="" disabled selected>請選擇</option>
+                <option value="wind">風力發電</option>
+                <option value="solar">太陽能發電</option>
+            </select>
+        
+            <label for="latitude">緯度 (Latitude)：</label>
+            <input type="number" step="0.0001" id="latitude" placeholder="例如: 23.812" required>
+        
+            <label for="longitude">經度 (Longitude)：</label>
+            <input type="number" step="0.0001" id="longitude" placeholder="例如: 120.303" required>
+        
+            <!-- 風力發電的額外輸入 -->
+            <div id="windFields" style="display: none;">
+                <label for="windHeight">風機高度 (公尺)：</label>
+                <input type="number" step="1" id="windHeight" placeholder="例如: 80">
+        
+                <label for="bladeArea">葉片面積 (平方米)：</label>
+                <input type="number" step="0.1" id="bladeArea" placeholder="例如: 50.5">
+        
+                <label for="windEfficiency">風機發電效率 (0~1)：</label>
+                <input type="number" step="0.01" min="0" max="1" id="windEfficiency" placeholder="例如: 0.35">
+            </div>
+        
+            <!-- 太陽能發電的額外輸入 -->
+            <div id="solarFields" style="display: none;">
+                <label for="panelArea">太陽能板面積 (平方米)：</label>
+                <input type="number" step="0.1" id="panelArea" placeholder="例如: 20.5">
+        
+                <label for="tiltAngle">傾斜角度 (度)：</label>
+                <input type="number" step="1" min="0" max="90" id="tiltAngle" placeholder="例如: 30">
+        
+                <label for="solarEfficiency">太陽能板發電效率 (0~1)：</label>
+                <input type="number" step="0.01" min="0" max="1" id="solarEfficiency" placeholder="例如: 0.18">
+            </div>
+        
+            <button type="submit">查詢</button>
+        </form>
+
+        
+
+
+        <div id="result">
+            <p id="resultText"></p>
+        </div>
+    
+
+        <div style="margin-top: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; text-align: center; line-height: 50px;">
+            <h2 style="margin: 0; display: inline;">聯絡我們</h2>
+        </div>
+        
+        <div style="margin: 20px; padding: 20px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin-bottom: 15px; color: #333; font-size: 36px; font-weight: bold; text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);">
+                我們的專業為您提供全方位解決方案！
+            </h3>
+            <p style="margin-bottom: 15px; line-height: 1.8; font-size: 22px; font-weight: bold; color: #555;">
+                作為專業的氣候變遷與能源調適團隊，我們致力於為民營廠家提供一站式的客製化服務，包括但不限於：
+            </p>
+            <ul style="list-style-type: disc; padding-left: 20px; line-height: 1.8; font-size: 22px; font-weight: bold; color: #555;">
+                <li>氣候變遷風險評估：深入分析潛在風險，確保您的事業運作穩健無虞。</li>
+                <li>氣候變遷調適策略：提供最佳解決方案，協助降低因應氣候變化帶來的挑戰。</li>
+                <li>未來潛在發電量預估：結合高解析度氣象數據，精確估算再生能源發電量。</li>
+                <li>潛在案場分析：發掘具高效益的新能源開發地點，助您領先市場。</li>
+                <li>發電量穩定度分析：評估公司整理案場發電量及穩定度，助您衡量風險與報酬。</li>
+                <li>其他量身定制的能源解決方案。</li>
+            </ul>
+            <p style="margin-top: 15px; line-height: 1.8; font-size: 22px; font-weight: bold; color: #555;">
+                如果您對我們的服務有興趣，或者希望獲得更多關於氣候變遷調適和能源潛力分析的詳細資訊，請立即填寫以下表單，我們的團隊將於第一時間與您聯繫！
+            </p>
+        </div>
+        
+        
+        <div class="contact-form">
+            <form action="https://formspree.io/f/mqaagpez" method="POST" style="max-width: 90%; margin: 0 auto; font-size: 1rem;">
+                <label for="name" style="display: block; margin-bottom: 10px;">姓名:</label>
+                <input type="text" id="name" name="name" required style="width: 100%; padding: 10px; margin-bottom: 20px; font-size: 1rem;">
+        
+                <label for="phone" style="display: block; margin-bottom: 10px;">電話:</label>
+                <input type="tel" id="phone" name="phone" required style="width: 100%; padding: 10px; margin-bottom: 20px; font-size: 1rem;">
+        
+                <label for="email" style="display: block; margin-bottom: 10px;">Email:</label>
+                <input type="email" id="email" name="email" required style="width: 100%; padding: 10px; margin-bottom: 20px; font-size: 1rem;">
+        
+                <label for="message" style="display: block; margin-bottom: 10px;">留言內容:</label>
+                <textarea id="message" name="message" required style="width: 100%; padding: 10px; margin-bottom: 20px; font-size: 1rem;"></textarea>
+        
+                <input type="submit" value="確認送出" style="width: 100%; padding: 15px; background-color: #007bff; color: #fff; border: none; border-radius: 5px; font-size: 1rem;">
+            </form>
+        </div>
+        
+        <style>
+            /* 使用相對單位控制自適應設計 */
+            html {
+                font-size: 20px; /* 基準字體大小 */
+            }
+        
+            @media (max-width: 768px) {
+                html {
+                    font-size: 14px; /* 螢幕較小時縮小字體大小 */
+                }
+            }
+        
+            @media (max-width: 480px) {
+                html {
+                    font-size: 12px; /* 極小螢幕上的字體 */
+                }
+            }
+        
+            .contact-form form {
+                font-size: 1rem; /* 相對於基準字體比例 */
+            }
+        </style>
+        
+        
+
+   
+
+</div>
+</div>
+
+
+
+
+
+
+
+    <script>
+
+        // 動態顯示與隱藏欄位
+        const energyTypeSelect = document.getElementById("energyType");
+        const windFields = document.getElementById("windFields");
+        const solarFields = document.getElementById("solarFields");
+
+                energyTypeSelect.addEventListener("change", function () {
+                    const selectedValue = energyTypeSelect.value;
+                    if (selectedValue === "wind") {
+                        windFields.style.display = "block";
+                        solarFields.style.display = "none";
+                    } else if (selectedValue === "solar") {
+                        windFields.style.display = "none";
+                        solarFields.style.display = "block";
+                    } else {
+                        windFields.style.display = "none";
+                        solarFields.style.display = "none";
+                    }
+                });
+
+            // 定義 JSON 檔案對應氣候情境
+        const fileMapping = {
+            "wind": {
+                "CTRL": "CTRL_wind_data.json",
+                "PGW2": "PGW2_wind_data.json",
+                "PGW4": "PGW4_wind_data.json"
+            },
+            "solar": {
+                "CTRL": "CTRL_solar_data.json",
+                "PGW2": "PGW2_solar_data.json",
+                "PGW4": "PGW4_solar_data.json"
+            }
+        };
+
+                        // 計算兩點間的直線距離（簡單的歐氏距離）
+            function calculateSimpleDistance(lat1, lon1, lat2, lon2) {
+                return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2));
+            }
+
+            // 計算風力發電量的函數
+            function calculateWindPower(windSpeed, height, bladeArea, efficiency) {
+                const airDensity = 1.225; // 空氣密度 (kg/m³)
+                const adjustedSpeed = windSpeed * Math.pow((height / 10), 0.14); // 按高度調整風速
+                return 0.5 * airDensity * bladeArea * Math.pow(adjustedSpeed, 3) * efficiency;
+            }
+
+            // 計算太陽能發電量的函數
+            function calculateSolarPower(sunlightIntensity, panelArea, efficiency, tiltAngle) {
+                const tiltAdjustment = Math.cos(tiltAngle * Math.PI / 180);
+                return sunlightIntensity * panelArea * efficiency * tiltAdjustment;
+            }
+
+
+            document.getElementById("energyForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    // 獲取用戶輸入
+    const energyType = document.getElementById("energyType").value;
+    const latitude = parseFloat(document.getElementById("latitude").value);
+    const longitude = parseFloat(document.getElementById("longitude").value);
+    const scenarioType = document.getElementById("scenarioType").value;
+
+    // 獲取對應的 JSON 檔案
+    const jsonFileName = fileMapping[energyType][scenarioType];
+    try {
+        const response = await fetch(jsonFileName);
+        const data = await response.json();
+
+        // 尋找最近的地點
+        let nearestLocation = null;
+        let minDistance = Infinity;
+
+        // 這裡檢查整個 latitude, longitude 和 wind_speed 陣列
+        const latitudeArray = data.latitude; // 包含所有緯度
+        const longitudeArray = data.longitude; // 包含所有經度
+
+        // 檢查每個位置，計算到目標位置的距離
+        for (let i = 0; i < latitudeArray.length; i++) {
+            // 使用簡單直線距離來計算
+            const distance = calculateSimpleDistance(latitude, longitude, latitudeArray[i], longitudeArray[i]);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestLocation = i; // 儲存最接近位置的索引
+            }
+        }
+
+        // 當找到最近的地點時，處理對應的能源計算
+        if (nearestLocation !== null) {
+            if (energyType === "wind") {
+                const windSpeed = data.wind_speed[nearestLocation];
+                const windHeight = parseInt(document.getElementById("windHeight")?.value || 80);
+                const bladeArea = parseFloat(document.getElementById("bladeArea")?.value || 50.5);
+                const windEfficiency = parseFloat(document.getElementById("windEfficiency")?.value || 0.35);
+                const power = calculateWindPower(windSpeed, windHeight, bladeArea, windEfficiency);
+                document.getElementById("resultText").textContent = `風力發電量為: ${power.toFixed(2)} kW`;
+            } else if (energyType === "solar") {
+                const sunlightIntensity = data.sunlight_intensity[nearestLocation];
+                const panelArea = parseFloat(document.getElementById("panelArea")?.value || 20.5);
+                const solarEfficiency = parseFloat(document.getElementById("solarEfficiency")?.value || 0.18);
+                const tiltAngle = parseInt(document.getElementById("tiltAngle")?.value || 30);
+                const power = calculateSolarPower(sunlightIntensity, panelArea, solarEfficiency, tiltAngle);
+                document.getElementById("resultText").textContent = `太陽能發電量為: ${power.toFixed(2)} kW`;
+            }
+        } else {
+            document.getElementById("resultText").textContent = "找不到對應的地點資料。";
+        }
+    } catch (error) {
+        document.getElementById("resultText").textContent = "資料載入失敗，請稍後再試。";
+        console.error("Error loading JSON: ", error);
+    }
+
+    document.getElementById("result").style.display = "block";
+});
+    </script>
+            
+    
+</body>
+
+<footer style="background-color: #004466; color: white; text-align: center; padding: 15px 0; margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap;">
+    <!-- 版權資訊 -->
+    <p style="margin: 0; font-size: 1rem;">© 2025 ITRI 工業技術研究院. All rights reserved.</p>
+    <!-- 聯絡資訊 -->
+    <address style="margin: 0;">
+        <p style="margin: 0; font-size: 1rem;">
+            <span style="margin-right: 10px;">聯絡我們:</span>
+            <a href="tel:035915596" style="color: white; text-decoration: underline;">03-5915596</a>
+        </p>
+    </address>
+</footer>
+
+
+</html>
